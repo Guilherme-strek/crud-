@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRUD de Usuários - Simples</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .form {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px;
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .actions button {
+      width: auto;
+      margin: 0 5px;
+      background: #6c757d;
+    }
+
+    .actions button.delete {
+      background: #dc3545;
+    }
+
+    .actions button:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>CRUD de Usuários</h2>
+
+  <div class="form">
+    <input type="text" id="nome" placeholder="Nome do usuário">
+    <input type="password" id="senha" placeholder="Senha">
+    <button onclick="salvarUsuario()">Salvar Usuário</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Senha</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="listaUsuarios">
+      <!-- Usuários serão adicionados aqui -->
+    </tbody>
+  </table>
+
+  <script>
+    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    let editando = null;
+
+    function salvarUsuario() {
+      const nome = document.getElementById('nome').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+
+      if (!nome || !senha) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      if (editando === null) {
+        usuarios.push({ nome, senha });
+      } else {
+        usuarios[editando] = { nome, senha };
+        editando = null;
+      }
+
+      atualizarLista();
+      limparCampos();
+      salvarNoLocalStorage();
+    }
+
+    function limparCampos() {
+      document.getElementById('nome').value = '';
+      document.getElementById('senha').value = '';
+    }
+
+    function atualizarLista() {
+      const tbody = document.getElementById('listaUsuarios');
+      tbody.innerHTML = '';
+
+      usuarios.forEach((usuario, index) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${usuario.nome}</td>
+          <td>${usuario.senha}</td>
+          <td class="actions">
+            <button onclick="editarUsuario(${index})">Editar</button>
+            <button class="delete" onclick="excluirUsuario(${index})">Excluir</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editarUsuario(index) {
+      const usuario = usuarios[index];
+      document.getElementById('nome').value = usuario.nome;
+      document.getElementById('senha').value = usuario.senha;
+      editando = index;
+    }
+
+    function excluirUsuario(index) {
+      if (confirm("Deseja realmente excluir esse usuário?")) {
+        usuarios.splice(index, 1);
+        atualizarLista();
+        salvarNoLocalStorage();
+      }
+    }
+
+    function salvarNoLocalStorage() {
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    }
+
+    atualizarLista();
+  </script>
+
+  <!-- 
+    COMENTÁRIOS DO CÓDIGO:
+
+    let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+    // Carrega os usuários salvos no navegador ou inicia um array vazio se não houver
+
+    let editando = null;
+    // Armazena o índice do usuário que está sendo editado
+
+    function salvarUsuario() {
+      // Função chamada ao clicar em "Salvar Usuário"
+
+      const nome = document.getElementById('nome').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+      // Pega os valores dos campos e remove espaços extras
+
+      if (!nome || !senha) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+      // Validação simples
+
+      if (editando === null) {
+        usuarios.push({ nome, senha });
+        // Se for novo, adiciona ao array
+      } else {
+        usuarios[editando] = { nome, senha };
+        editando = null;
+        // Se estiver editando, substitui o item no array
+      }
+
+      atualizarLista();
+      limparCampos();
+      salvarNoLocalStorage();
+      // Atualiza a tela, limpa os campos e salva os dados
+    }
+
+    function limparCampos() {
+      // Limpa os inputs de nome e senha
+      document.getElementById('nome').value = '';
+      document.getElementById('senha').value = '';
+    }
+
+    function atualizarLista() {
+      // Recria a tabela com os usuários
+
+      const tbody = document.getElementById('listaUsuarios');
+      tbody.innerHTML = ''; // limpa a tabela
+
+      usuarios.forEach((usuario, index) => {
+        // Para cada usuário, cria uma linha (tr) com nome, senha e botões
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${usuario.nome}</td>
+          <td>${usuario.senha}</td>
+          <td class="actions">
+            <button onclick="editarUsuario(${index})">Editar</button>
+            <button class="delete" onclick="excluirUsuario(${index})">Excluir</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editarUsuario(index) {
+      // Preenche os campos com os dados do usuário para edição
+
+      const usuario = usuarios[index];
+      document.getElementById('nome').value = usuario.nome;
+      document.getElementById('senha').value = usuario.senha;
+      editando = index; // guarda o índice para saber que está editando
+    }
+
+    function excluirUsuario(index) {
+      // Remove o usuário do array se confirmar
+
+      if (confirm("Deseja realmente excluir esse usuário?")) {
+        usuarios.splice(index, 1); // remove 1 elemento da posição "index"
+        atualizarLista();
+        salvarNoLocalStorage();
+      }
+    }
+
+    function salvarNoLocalStorage() {
+      // Salva os dados no armazenamento do navegador
+
+      localStorage.setItem('usuarios', JSON.stringify(usuarios));
+    }
+
+    atualizarLista();
+    // Ao carregar a página, exibe os usuários salvos
+  -->
+
+</body>
+</html>
